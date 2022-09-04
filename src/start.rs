@@ -186,14 +186,26 @@ fn set_lock(rootfs: &str) -> File {
 pub fn start(cfg: &KrunvmConfig, matches: &ArgMatches) {
     let cmd = matches.value_of("COMMAND");
     let name = matches.value_of("NAME").unwrap();
+    let cpus: u32 = matches.value_of("cpus").unwrap_or("").parse().unwrap_or(0);
+    let mem: u32 = matches.value_of("mem").unwrap_or("").parse().unwrap_or(0);
 
-    let vmcfg = match cfg.vmconfig_map.get(name) {
+    let mut vmcfg = match cfg.vmconfig_map.get(name) {
         None => {
             println!("No VM found with name {}", name);
             std::process::exit(-1);
         }
-        Some(vmcfg) => vmcfg,
+        Some(vmcfg) => vmcfg.clone(),
     };
+
+    if cpus > 0 {
+        vmcfg.cpus = cpus;
+    }
+
+    if mem > 0 {
+        vmcfg.mem = mem;
+    }
+
+    let vmcfg = &vmcfg;
 
     umount_container(cfg, vmcfg).expect("Error unmounting container");
     let rootfs = mount_container(cfg, vmcfg).expect("Error mounting container");
