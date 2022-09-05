@@ -1,10 +1,12 @@
 // Copyright 2021 Red Hat, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
+use std::collections::HashMap;
 use std::ffi::CString;
 use std::fs::File;
 #[cfg(target_os = "linux")]
 use std::io::{Error, ErrorKind};
+use std::os::raw::c_char;
 use std::os::unix::io::AsRawFd;
 #[cfg(target_os = "macos")]
 use std::path::Path;
@@ -66,7 +68,7 @@ fn map_volumes(ctx: u32, vmcfg: &VmConfig, rootfs: &str) {
     }
 }
 
-unsafe fn exec_vm(vmcfg: &VmConfig, rootfs: &str, cmd: Option<&str>, args: Vec<CString>) {
+unsafe fn exec_vm(vmcfg: &VmConfig, rootfs: &str, cmd: Option<&str>, args: Vec<CString>, env: HashMap<String, String>) {
     //bindings::krun_set_log_level(9);
 
     let ctx = bindings::krun_create_ctx() as u32;
@@ -111,13 +113,18 @@ unsafe fn exec_vm(vmcfg: &VmConfig, rootfs: &str, cmd: Option<&str>, args: Vec<C
         }
     }
 
-    let hostname = CString::new(format!("HOSTNAME={}", vmcfg.name)).unwrap();
-    let home = CString::new("HOME=/root").unwrap();
-    let env: [*const i8; 3] = [
-        hostname.as_ptr() as *const i8,
-        home.as_ptr() as *const i8,
-        std::ptr::null(),
-    ];
+    let mut env = env.clone();
+    env.insert("HOSTNAME".to_string(), vmcfg.name.clone());
+    env.insert("HOME".to_string(), "/root".to_string());
+    let mut arrenv: Vec<CString> = vec![];
+    for (k, v) in env {
+        let c = [k, v].join("=");
+        arrenv.push(CString::new(c).unwrap());
+    }
+
+    let mut arrenv = arrenv.into_iter().map(|s| s.into_raw()).collect::<Vec<_>>();
+    arrenv.push(std::ptr::null_mut() as *mut c_char);
+    arrenv.shrink_to_fit();
 
     if let Some(cmd) = cmd {
         let mut argv: Vec<*const i8> = Vec::new();
@@ -131,16 +138,16 @@ unsafe fn exec_vm(vmcfg: &VmConfig, rootfs: &str, cmd: Option<&str>, args: Vec<C
             ctx,
             c_cmd.as_ptr() as *const i8,
             argv.as_ptr() as *const *const i8,
-            env.as_ptr() as *const *const i8,
+            arrenv.as_ptr() as *const *const i8,
         );
         if ret < 0 {
             println!("Error setting VM config");
             std::process::exit(-1);
         }
     } else {
-        let ret = bindings::krun_set_env(ctx, env.as_ptr() as *const *const i8);
+        let ret = bindings::krun_set_env(ctx, arrenv.as_ptr() as *const *const i8);
         if ret < 0 {
-            println!("Error setting VM environment variables");
+            println!("Error setting VM environment variables: {}", ret);
             std::process::exit(-1);
         }
     }
@@ -188,6 +195,8 @@ pub fn start(cfg: &KrunvmConfig, matches: &ArgMatches) {
     let name = matches.value_of("NAME").unwrap();
     let cpus: u32 = matches.value_of("cpus").unwrap_or("").parse().unwrap_or(0);
     let mem: u32 = matches.value_of("mem").unwrap_or("").parse().unwrap_or(0);
+    let copy_env: bool = matches.is_present("copy_env");
+    let filters: Vec<&str> = matches.value_of("filter_env").unwrap_or("").split(",").collect();
 
     let mut vmcfg = match cfg.vmconfig_map.get(name) {
         None => {
@@ -219,11 +228,21 @@ pub fn start(cfg: &KrunvmConfig, matches: &ArgMatches) {
         Vec::new()
     };
 
+    let mut env: HashMap<String, String> = HashMap::new();
+    if copy_env {
+        for (k, v) in std::env::vars() {
+            env.insert(k, v);
+        }
+        for f in filters {
+            env.remove(f);
+        }
+    }
+
     set_rlimits();
 
     let _file = set_lock(&rootfs);
 
-    unsafe { exec_vm(vmcfg, &rootfs, cmd, args) };
+    unsafe { exec_vm(vmcfg, &rootfs, cmd, args, env) };
 
     umount_container(cfg, vmcfg).expect("Error unmounting container");
 }

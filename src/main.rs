@@ -335,6 +335,19 @@ fn main() {
                         .takes_value(true),
                 )
                 .arg(
+                    Arg::with_name("copy_env")
+                        .long("copy-environment")
+                        .short("E")
+                        .help("Copy current environment to child, except for filtered")
+                )
+                .arg(
+                    Arg::with_name("filter_env")
+                        .long("filter-environment")
+                        .help("Comma separated list of environment variables to filter when copying")
+                        .default_value("PATH,PWD,CWD,HOME,USER,TERMCAP")
+                        .takes_value(true)
+                )
+                .arg(
                     Arg::with_name("NAME")
                         .help("Name of the microVM")
                         .required(true)
