@@ -25,7 +25,7 @@ mod utils;
 
 const APP_NAME: &str = "krunvm";
 
-#[derive(Default, Debug, Serialize, Deserialize)]
+#[derive(Default, Debug, Serialize, Deserialize, Clone)]
 pub struct VmConfig {
     name: String,
     cpus: u32,
@@ -296,11 +296,29 @@ fn main() {
         .subcommand(
             App::new("start")
                 .about("Start an existing microVM")
-                .arg(Arg::with_name("cpus").long("cpus").help("Number of vCPUs"))
+                .arg(
+                    Arg::with_name("cpus")
+                        .long("cpus")
+                        .help("Number of vCPUs")
+                        .takes_value(true))
                 .arg(
                     Arg::with_name("mem")
                         .long("mem")
-                        .help("Amount of RAM in MiB"),
+                        .help("Amount of RAM in MiB")
+                        .takes_value(true),
+                )
+                .arg(
+                    Arg::with_name("copy_env")
+                        .long("copy-environment")
+                        .short("E")
+                        .help("Copy current environment to child, except for filtered")
+                )
+                .arg(
+                    Arg::with_name("filter_env")
+                        .long("filter-environment")
+                        .help("Comma separated list of environment variables to filter when copying")
+                        .default_value("PATH,PWD,CWD,HOME,USER,TERMCAP")
+                        .takes_value(true)
                 )
                 .arg(
                     Arg::with_name("NAME")
