@@ -14,7 +14,7 @@ all: $(KRUNVM_RELEASE)
 debug: $(KRUNVM_DEBUG)
 
 $(KRUNVM_RELEASE):
-	cargo build --release
+	MACOSX_DEPLOYMENT_TARGET=11.0 cargo build --release
 ifeq ($(OS),Darwin)
 	codesign --entitlements krunvm.entitlements --force -s - $@
 endif

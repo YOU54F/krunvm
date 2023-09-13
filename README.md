@@ -99,6 +99,9 @@ krunvm start alpine \
 cargo build --release
 ```
 
+set `MACOSX_DEPLOYMENT_TARGET` to `11.0` if you are building on macOS, to ensure compatibility with older versions,
+built of later versions of macOS. 11.0 is the earliest for `arm64` macs.
+
 #### Examples in the wild
 
 ##### Byzanteam/jet-deployment
