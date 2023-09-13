@@ -15,18 +15,23 @@ pub fn printvm(vm: &VmConfig) {
     println!(" Mapped ports: {:?}", vm.mapped_ports);
 }
 
-pub fn list(cfg: &KrunvmConfig, _matches: &ArgMatches) {
+pub fn info(cfg: &KrunvmConfig, _matches: &ArgMatches) {
     let _json = _matches.is_present("json");
+    let name = _matches.value_of("NAME").unwrap();
     if cfg.vmconfig_map.is_empty() {
         println!("No microVMs found");
     } else {
-        if _json {
-            serde_json::to_writer(stdout(), &cfg).unwrap();
-        } else {
-            for (_name, vm) in cfg.vmconfig_map.iter() {
-                println!();
-                printvm(vm);
+        let vmcfg = match cfg.vmconfig_map.get(name) {
+            None => {
+                println!("No VM found with name {}", name);
+                std::process::exit(-1);
             }
+            Some(vmcfg) => vmcfg,
+        };
+        if _json {
+            serde_json::to_writer(stdout(), &vmcfg).unwrap();
+        } else {
+            printvm(&vmcfg);
             println!();
         }
     }

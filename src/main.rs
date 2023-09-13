@@ -18,6 +18,7 @@ mod changevm;
 mod config;
 mod create;
 mod delete;
+mod info;
 mod list;
 mod start;
 mod utils;
@@ -259,6 +260,29 @@ fn main() {
                 Arg::with_name("debug")
                     .short("d")
                     .help("print debug information verbosely"),
+                ).arg(
+                    Arg::with_name("json")
+                        .short("j")
+                        .long("json")
+                        .help("print output as json"),
+                ),
+        )
+        .subcommand(
+            App::new("info").about("Info about a specific VM")
+            .arg(
+                Arg::with_name("NAME")
+                    .help("Name of the microVM to be query")
+                    .required(true)
+                    .index(1),
+            ).arg(
+                Arg::with_name("debug")
+                    .short("d")
+                    .help("print debug information verbosely"),
+            ).arg(
+                Arg::with_name("json")
+                    .short("j")
+                    .long("json")
+                    .help("print output as json"),
             ),
         )
         .subcommand(
@@ -375,6 +399,8 @@ fn main() {
         delete::delete(&mut cfg, matches);
     } else if let Some(matches) = matches.subcommand_matches("list") {
         list::list(&cfg, matches);
+    } else if let Some(matches) = matches.subcommand_matches("info") {
+        info::info(&cfg, matches);
     } else if let Some(matches) = matches.subcommand_matches("start") {
         start::start(&cfg, matches);
     } else {
