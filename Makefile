@@ -28,3 +28,6 @@ install: $(KRUNVM_RELEASE)
 
 clean:
 	cargo clean
+
+ci:
+	cirrus run --output github-actions --artifacts-dir tmp

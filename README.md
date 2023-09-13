@@ -74,6 +74,15 @@ By default it will drop into `sh`
 
 `krunvm delete "{{image_name}}"`
 
+- Copy environment variables from host
+
+NB:- Experimental feature, will _probably_ conflict with things in your guest.
+
+```sh
+krunvm start alpine \
+    --copy-environment \
+    --filter-environment PATH,PWD,CWD,HOME,USER,TERMCAP,HOSTNAME,SHELL,PAGER,GPG_TTY,_,LC_TERMINAL,COLORTERM,TERM_PROGRAM,TERM_SESSION_ID,SSH_AUTH_SOCK 
+```
 
 ### Building from sources
 
