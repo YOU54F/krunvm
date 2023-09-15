@@ -2,17 +2,12 @@ macos_task:
   macos_instance:
     image: ghcr.io/cirruslabs/macos-ventura-xcode:14.3.1
   script: |
-    diskutil list
-    diskutil apfs addVolume disk2 "Case-sensitive APFS" krunvm
     brew install rust asciidoctor
     brew tap slp/krun
     brew install libkrun buildah
     sudo chown -R $(whoami) /usr/local/bin
     make clean
     make install
-    krunvm --version
-    krunvm create ubuntu --name ubuntu || true
-    krunvm create ubuntu --name ubuntu || true
-    krunvm start ubuntu || true # This will fail as no hypervisor.framework in vm's
+    krunvm --help
   artifacts:
     paths: ["target/release/krunvm"]

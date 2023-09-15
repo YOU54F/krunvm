@@ -26,7 +26,7 @@
 ### macOS
 
 ```sh
-brew tap slp/krun
+brew tap you54f/krun
 brew install krunvm
 ```
 
@@ -41,40 +41,40 @@ dnf install -y krunvm
 
 ### Usage
 
-- Create MicroVM based on Fedora:
+#### Create MicroVM based on Fedora:
 
 `krunvm create {{docker.io/fedora}} --cpus {{number_of_vcpus}} --mem {{memory_in_megabytes}} --name "{{name}}"`
 
-- Start a specific image:
+#### Start a specific image:
 
 `krunvm start "{{image_name}}"`
 
 By default it will drop into `sh`
 
-- Start a specific image with a specific shell/command:
+#### Start a specific image with a specific shell/command:
 
 `krunvm start "{{image_name}}" /bin/bash`
 
-- List images:
+#### List images:
 
-`krunvm list`
-`krunvm list --json` # Json output
-`krunvm list --json | jq '.vmconfig_map[].name'` # List names only
+- `krunvm list`
+- `krunvm list --json` # Json output
+- `krunvm list --json | jq '.vmconfig_map[].name'` # List names only
 
-- Info about an image:
+#### Info about an image:
 
-`krunvm list "{{image_name}}"`
-`krunvm list "{{image_name}}" --json` # Json output
+- `krunvm list "{{image_name}}"`
+- `krunvm list "{{image_name}}" --json` # Json output
 
-- Change a specific image:
+#### Change a specific image:
 
-`krunvm changevm --cpus {{number_of_vcpus}} --mem {{memory_in_megabytes}} --name "{{new_vm_name}}" "{{current_vm_name}}"`
+- `krunvm changevm --cpus {{number_of_vcpus}} --mem {{memory_in_megabytes}} --name "{{new_vm_name}}" "{{current_vm_name}}"`
 
-- Delete a specific image:
+#### Delete a specific image:
 
-`krunvm delete "{{image_name}}"`
+- `krunvm delete "{{image_name}}"`
 
-- Copy environment variables from host
+#### Copy environment variables from host
 
 NB:- Experimental feature, will _probably_ conflict with things in your guest.
 
@@ -109,6 +109,7 @@ built of later versions of macOS. 11.0 is the earliest for `arm64` macs.
 https://github.com/Byzanteam/jet-deployment/tree/f6762f0f956e285a1e2b504b5de51b031a1d0950/external-services
 
 ## Database
+
 ```bash
 # Create the db MicroVM
 krunvm create -p 5432:5432 --name airbase-db postgres:13.7-alpine
@@ -124,6 +125,7 @@ krunvm start airbase-db
 ```
 
 ## Minio
+
 ```bash
 # Create the minio MicroVM
 krunvm create -p 9000:9000 -p 9001:9001 --name airbase-minio minio/minio
